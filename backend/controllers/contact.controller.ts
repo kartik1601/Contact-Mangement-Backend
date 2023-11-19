@@ -1,4 +1,5 @@
 import express, {Response,Request} from "express";
+import errorHandler from "../middleware/errorHandler";
 
 // description - GET all contacts
 // route - GET /api/contacts
@@ -23,6 +24,10 @@ export const getSingleContact = (req:Request,res:Response) => {
 // access - private
 export const createContact = (req:Request,res:Response) => {
     console.log(req.body);
+    // destructuring the request body
+    const {name,email,phone} = req.body;
+    if(!name || !email || !phone){
+    }
     res.status(201).json({ // response containing json body
         success: true,
         message: `Contact created: ${req.body.name} with mobile: ${req.body.phone}`

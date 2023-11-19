@@ -2,6 +2,7 @@
 require("dotenv").config(); // for using the port in a secured file as process.env. (config() is used for this)
 import express, {Request,Response} from "express";
 import contactRouter from "./routes/contactRoutes";
+import errorHandler from "./middleware/errorHandler";
 
 const app = express(); // creating an express application
 
@@ -13,6 +14,8 @@ app.use(express.json());
     using a default address before the joining the address from the router
 */
 app.use("/api/v1/contacts",contactRouter);
+// middle ware - error handler
+app.use(errorHandler);
 
 // listen() - method - it will start an express server at the specified port
 app.listen(port, () => { // callback function
