@@ -99,7 +99,7 @@ export const deleteContact = asyncHandler(async(req:AuthenticatedRequest,res:Res
         throw new Error("User not authorized for this action!");
     }
 
-    await contactModel.deleteOne({_id: req.params.id});
+    await contactModel.findByIdAndDelete(req.params.id);
     
     res.status(200).json({ // response containing json body
         success: true,
