@@ -1,56 +1,92 @@
 import express, {Response,Request} from "express";
-import errorHandler from "../middleware/errorHandler";
-import expressAsyncHandler from "express-async-handler";
-
+import asyncHandler from "express-async-handler"; // for implementing auto try-catch blocks
+import contactModel from "../models/contact.model";
+/* CRUD operations */
 // description - GET all contacts
 // route - GET /api/contacts
 // access - public
-export const getContacts = async(req:Request,res:Response) => {
+export const getContacts = asyncHandler(async(req:Request,res:Response) => {
+    const contacts = await contactModel.find();
     res.status(200).json({ // response containing json body
         success: true,
-        message: "Welcome to your contacts!"
+        contacts
     });
-};
+});
 // description - GET single contact
 // route - GET /api/contacts/:id
 // access - public
-export const getSingleContact = async(req:Request,res:Response) => {
+export const getSingleContact = asyncHandler(async(req:Request,res:Response) => {
+    const contact = await contactModel.findById(req.params.id);
+    if(!contact){
+        res.status(404);
+        throw new Error("Contact not found!");
+    }
+
     res.status(200).json({ // response containing json body
         success: true,
-        message: `The following Contact: ${req.params.id}`
+        message: `The following Contact: ${req.params.id}`,
+        contact,
     });
-};
+});
 // description - Create a contact
 // route - POST /api/contacts/
 // access - private
-export const createContact = async(req:Request,res:Response) => {
+export const createContact = asyncHandler(async(req:Request,res:Response) => {
     console.log(req.body);
     // destructuring the request body
     const {name,email,phone} = req.body;
+
     if(!name || !email || !phone){
         res.status(400);
         throw new Error("All fields are compulsory!");
     }
+
+    const contact = await contactModel.create({
+        name,
+        email,
+        phone
+    });
     res.status(201).json({ // response containing json body
         success: true,
-        message: `Contact created: ${req.body.name}`
+        message: `Contact created!`,
+        contact,
     });
-};
+});
 // description - Update a contact
 // route - PUT /api/contacts/:id
 // access - private
-export const updateContact = async(req:Request,res:Response) => {
+export const updateContact = asyncHandler(async(req:Request,res:Response) => {
+    const contact = await contactModel.findById(req.params.id);
+    if(!contact){
+        res.status(404);
+        throw new Error("Contact not found!");
+    }
+
+    const updatedContact = await contactModel.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        {new: true} // query option
+    )
+
     res.status(201).json({ // response containing json body
         success: true,
-        message: `Update Contact : ${req.params.id}`
+        updatedContact,
     });
-};
+});
 // description - Delete all contacts
 // route - DELETE /api/contacts
 // access - private
-export const deleteContact = async(req:Request,res:Response) => {
+export const deleteContact = asyncHandler(async(req:Request,res:Response) => {
+    const contact = await contactModel.findById(req.params.id);
+    if(!contact){
+        res.status(404);
+        throw new Error("Contact not found!");
+    }
+
+    await contactModel.findByIdAndDelete(req.params.id);
+    
     res.status(200).json({ // response containing json body
         success: true,
-        message: `Delete Contact: ${req.params.id}`
+        message: `Deleted successfully! {${contact.name}, ${contact.email}, ${contact.phone}}`
     });
-};
+});

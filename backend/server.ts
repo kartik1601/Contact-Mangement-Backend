@@ -3,7 +3,10 @@ require("dotenv").config(); // for using the port in a secured file as process.e
 import express, {Request,Response} from "express";
 import contactRouter from "./routes/contactRoutes";
 import errorHandler from "./middleware/errorHandler";
+import connectDb from "./config/dbConnection";
+import userRouter from "./routes/userRoutes";
 
+connectDb(); // database connection
 const app = express(); // creating an express application
 
 const port = process.env.PORT || 5050; // if the specified port in env is null, then use an alternate port
@@ -14,6 +17,7 @@ app.use(express.json());
     using a default address before the joining the address from the router
 */
 app.use("/api/v1/contacts",contactRouter);
+app.use("/api/v1/users",userRouter);
 // middle ware - error handler
 app.use(errorHandler);
 
