@@ -4,18 +4,22 @@ import contactModel from "../models/contact.model";
 /* CRUD operations */
 // description - GET all contacts
 // route - GET /api/contacts
-// access - public
-export const getContacts = asyncHandler(async(req:Request,res:Response) => {
-    const contacts = await contactModel.find();
+// access - private
+interface AuthenticatedRequest extends Request {
+    user?: any;
+}
+export const getContacts = asyncHandler(async(req:AuthenticatedRequest,res:Response) => {
+    const contacts = await contactModel.find({user_id: req.user.id});
     res.status(200).json({ // response containing json body
         success: true,
         contacts
     });
 });
+
 // description - GET single contact
 // route - GET /api/contacts/:id
-// access - public
-export const getSingleContact = asyncHandler(async(req:Request,res:Response) => {
+// access - private
+export const getSingleContact = asyncHandler(async(req:AuthenticatedRequest,res:Response) => {
     const contact = await contactModel.findById(req.params.id);
     if(!contact){
         res.status(404);
@@ -31,7 +35,7 @@ export const getSingleContact = asyncHandler(async(req:Request,res:Response) => 
 // description - Create a contact
 // route - POST /api/contacts/
 // access - private
-export const createContact = asyncHandler(async(req:Request,res:Response) => {
+export const createContact = asyncHandler(async(req:AuthenticatedRequest,res:Response) => {
     console.log(req.body);
     // destructuring the request body
     const {name,email,phone} = req.body;
@@ -44,7 +48,8 @@ export const createContact = asyncHandler(async(req:Request,res:Response) => {
     const contact = await contactModel.create({
         name,
         email,
-        phone
+        phone,
+        user_id: req.user.id
     });
     res.status(201).json({ // response containing json body
         success: true,
@@ -55,11 +60,16 @@ export const createContact = asyncHandler(async(req:Request,res:Response) => {
 // description - Update a contact
 // route - PUT /api/contacts/:id
 // access - private
-export const updateContact = asyncHandler(async(req:Request,res:Response) => {
+export const updateContact = asyncHandler(async(req:AuthenticatedRequest,res:Response) => {
     const contact = await contactModel.findById(req.params.id);
     if(!contact){
         res.status(404);
         throw new Error("Contact not found!");
+    }
+
+    if(contact.user_id.toString() !== req.user.id){
+        res.status(403); //Not authorized
+        throw new Error("User not authorized for this action!");
     }
 
     const updatedContact = await contactModel.findByIdAndUpdate(
@@ -73,17 +83,23 @@ export const updateContact = asyncHandler(async(req:Request,res:Response) => {
         updatedContact,
     });
 });
+
 // description - Delete all contacts
 // route - DELETE /api/contacts
 // access - private
-export const deleteContact = asyncHandler(async(req:Request,res:Response) => {
+export const deleteContact = asyncHandler(async(req:AuthenticatedRequest,res:Response) => {
     const contact = await contactModel.findById(req.params.id);
     if(!contact){
         res.status(404);
         throw new Error("Contact not found!");
     }
 
-    await contactModel.findByIdAndDelete(req.params.id);
+    if(contact.user_id.toString() !== req.user.id){
+        res.status(403); //Not authorized
+        throw new Error("User not authorized for this action!");
+    }
+
+    await contactModel.deleteOne({_id: req.params.id});
     
     res.status(200).json({ // response containing json body
         success: true,

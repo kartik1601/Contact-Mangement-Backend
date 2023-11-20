@@ -1,7 +1,10 @@
 import express, {Request,Response} from "express";
 import {getContacts,createContact,updateContact,getSingleContact,deleteContact} from "../controllers/contact.controller";
+import isAuthorized from "../middleware/validateToken";
 
 const contactRouter = express.Router();
+//auto import a function in every route using .use()
+contactRouter.use(isAuthorized);
 
 // get all contacts information
 contactRouter.get('/', getContacts);

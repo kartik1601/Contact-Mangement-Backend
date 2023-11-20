@@ -1,6 +1,6 @@
 /* Install the dotenv dependency in the root folder: npm i dotenv */
 require("dotenv").config(); // for using the port in a secured file as process.env. (config() is used for this)
-import express, {Request,Response} from "express";
+import express from "express";
 import contactRouter from "./routes/contactRoutes";
 import errorHandler from "./middleware/errorHandler";
 import connectDb from "./config/dbConnection";
